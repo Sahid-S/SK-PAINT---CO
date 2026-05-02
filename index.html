@@ -10,6 +10,37 @@
   <meta property="og:title" content="SK Paint Co. — Professional Painting Services in Madurai">
   <meta property="og:description" content="Clean, high-quality interior and exterior painting for homes, rentals, and commercial spaces in Madurai.">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_IN">
+  <meta name="robots" content="index, follow">
+  <meta name="geo.region" content="IN-TN">
+  <meta name="geo.placename" content="Madurai">
+  <link rel="canonical" href="https://www.skpaintco.com/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SK Paint Co. — Professional Painting Services in Madurai">
+  <meta name="twitter:description" content="Clean, high-quality interior and exterior painting for homes, rentals, and commercial spaces in Madurai.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "SK Paint Co.",
+    "description": "Professional painting services in Madurai — interior, exterior, rental repainting, wall putty & finishing.",
+    "telephone": "+919876543210",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Madurai",
+      "addressRegion": "Tamil Nadu",
+      "addressCountry": "IN"
+    },
+    "areaServed": { "@type": "City", "name": "Madurai" },
+    "priceRange": "₹₹",
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+      "opens": "08:00",
+      "closes": "19:00"
+    }
+  }
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -100,6 +131,16 @@
           <h3>Wall Putty & Finishing</h3>
           <p>Expert wall preparation with premium putty and finishing coats. The foundation for a perfect, long-lasting paint job.</p>
         </div>
+        <div class="service-card fade-up" style="border: 2px dashed var(--mid-grey); background: var(--off-white);">
+          <div class="service-icon" style="background: rgba(245,124,0,.1);">✨</div>
+          <h3>Modular Kitchen</h3>
+          <p><em>Coming Soon —</em> Custom modular kitchen design and installation for modern homes in Madurai.</p>
+        </div>
+        <div class="service-card fade-up" style="border: 2px dashed var(--mid-grey); background: var(--off-white);">
+          <div class="service-icon" style="background: rgba(245,124,0,.1);">🪑</div>
+          <h3>Interior Works</h3>
+          <p><em>Coming Soon —</em> Complete interior design and custom furniture solutions for your dream space.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -143,7 +184,20 @@
   <section class="section" id="gallery">
     <div class="container">
       <h2 class="section-title fade-up">Before & After</h2>
-      <p class="section-subtitle fade-up">See the transformations we've delivered for homes across Madurai</p>
+      <p class="section-subtitle fade-up">See the transformations we've delivered for homes across Madurai. Drag the slider to compare.</p>
+      <!-- Comparison Slider -->
+      <div class="comparison-wrapper fade-up" id="comparisonSlider">
+        <div class="comparison-container" id="comparisonContainer">
+          <img src="images/before-after-1.png" alt="Before painting" class="comparison-img comparison-before" draggable="false">
+          <img src="images/before-after-3.png" alt="After painting" class="comparison-img comparison-after" id="comparisonAfter" draggable="false">
+          <div class="comparison-divider" id="comparisonDivider"></div>
+          <div class="comparison-handle" id="comparisonHandle">⟷</div>
+          <div class="comparison-labels">
+            <span class="comparison-label-tag">Before</span>
+            <span class="comparison-label-tag">After</span>
+          </div>
+        </div>
+      </div>
       <div class="gallery-grid">
         <div class="gallery-item fade-up">
           <img src="images/before-after-1.png" alt="Living room painting transformation in Madurai" loading="lazy">
