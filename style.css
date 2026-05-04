@@ -117,15 +117,12 @@ button { cursor: pointer; border: none; font-family: inherit; }
 }
 .logo { display: flex; align-items: center; }
 .logo-img {
-  height: 70px;
+  height: 170px;
   width: auto;
   object-fit: contain;
 }
 .footer .logo-img {
-  height: 56px;
-  background: var(--white);
-  border-radius: 8px;
-  padding: 4px 10px;
+  height: 100px;
 }
 .nav-links { display: flex; gap: 32px; align-items: center; }
 .nav-links a {
@@ -611,8 +608,8 @@ button { cursor: pointer; border: none; font-family: inherit; }
 
 /* ===== FOOTER ===== */
 .footer {
-  background: var(--primary-dark);
-  color: var(--white);
+  background: var(--white);
+  color: var(--text);
   padding: 60px 0 0;
 }
 .footer-grid {
@@ -620,7 +617,7 @@ button { cursor: pointer; border: none; font-family: inherit; }
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
   gap: 40px;
   padding-bottom: 40px;
-  border-bottom: 1px solid rgba(255,255,255,.1);
+  border-bottom: 1px solid var(--light-grey);
 }
 .footer-about p { opacity: .7; font-size: .9rem; line-height: 1.7; margin-top: 12px; }
 .footer h4 { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }

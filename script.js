@@ -42,7 +42,7 @@ contactForm?.addEventListener('submit', (e) => {
   const service = contactForm.querySelector('[name="service"]')?.value || '';
   const message = contactForm.querySelector('[name="message"]')?.value || '';
   const text = `Hello SK Paint Co.!%0A%0AName: ${name}%0APhone: ${phone}%0AService: ${service}%0AMessage: ${message}`;
-  window.open(`https://wa.me/919876543210?text=${text}`, '_blank');
+  window.open(`https://wa.me/916374921410?text=${text}`, '_blank');
 });
 
 // ===== ACTIVE NAV LINK =====
