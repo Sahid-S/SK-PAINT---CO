@@ -1,112 +1,192 @@
-// ===== HEADER SCROLL EFFECT =====
-const header = document.querySelector('.header');
-window.addEventListener('scroll', () => {
-  header?.classList.toggle('scrolled', window.scrollY > 30);
-});
+/* =================================================================
+   SK PAINT CO. — Page interactions
+   Reveal-on-scroll, stat counters, before/after slider, lightbox,
+   and the WhatsApp contact-form handler. Chrome lives in components.js.
+   ================================================================= */
 
-// ===== MOBILE NAV TOGGLE =====
-const hamburger = document.getElementById('hamburger');
-const mobileNav = document.getElementById('mobile-nav');
-hamburger?.addEventListener('click', () => {
-  mobileNav.classList.toggle('open');
-  hamburger.classList.toggle('active');
-  document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
-});
-// Close on link click
-mobileNav?.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    mobileNav.classList.remove('open');
-    hamburger.classList.remove('active');
-    document.body.style.overflow = '';
+/* ---------- REVEAL ON SCROLL ---------- */
+const reveals = document.querySelectorAll('.reveal');
+if (reveals.length) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+}
+
+/* ---------- STAT COUNTERS ---------- */
+function animateCounters(scope) {
+  scope.querySelectorAll('[data-count]').forEach(el => {
+    const target = +el.dataset.count;
+    const suffix = el.dataset.suffix || '';
+    const duration = 1100;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   });
-});
+}
+const statsEl = document.querySelector('.stats-grid');
+if (statsEl) {
+  const so = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) { animateCounters(statsEl); so.disconnect(); }
+  }, { threshold: 0.4 });
+  so.observe(statsEl);
+}
 
-// ===== SCROLL ANIMATIONS =====
-const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -40px 0px' };
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
+/* ---------- BEFORE / AFTER COMPARISON SLIDER ---------- */
+(function () {
+  const wrap = document.getElementById('comparisonSlider');
+  const container = document.getElementById('comparisonContainer');
+  const after = document.getElementById('comparisonAfter');
+  const divider = document.getElementById('comparisonDivider');
+  const handle = document.getElementById('comparisonHandle');
+  const tip = document.getElementById('comparisonTip');
+  if (!wrap || !container || !after || !divider || !handle) return;
+
+  let dragging = false;
+  let touched = false;             // once interacted, tip shows the live percentage
+  const clamp = (n) => Math.max(2, Math.min(98, n));
+
+  function setPercent(pct) {
+    pct = clamp(pct);
+    const r = Math.round(pct);
+    after.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+    divider.style.left = pct + '%';
+    handle.style.left = pct + '%';
+    handle.setAttribute('aria-valuenow', r);
+    if (tip) {
+      tip.style.left = pct + '%';
+      if (touched) tip.textContent = `${r}% After`;
     }
-  });
-}, observerOptions);
-document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  }
+  const pctFromX = (x) => ((x - container.getBoundingClientRect().left) / container.offsetWidth) * 100;
 
-// ===== CONTACT FORM HANDLER =====
+  const startDrag = () => { dragging = true; touched = true; wrap.classList.add('dragging'); };
+  const endDrag = () => { dragging = false; wrap.classList.remove('dragging'); };
+
+  handle.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+  handle.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+  window.addEventListener('mousemove', e => { if (dragging) setPercent(pctFromX(e.clientX)); });
+  window.addEventListener('touchmove', e => { if (dragging) setPercent(pctFromX(e.touches[0].clientX)); }, { passive: true });
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+  wrap.addEventListener('click', e => {
+    if (e.target !== handle && !handle.contains(e.target)) { touched = true; setPercent(pctFromX(e.clientX)); }
+  });
+
+  // Keyboard accessibility
+  handle.addEventListener('keydown', e => {
+    const cur = parseFloat(handle.style.left) || 50;
+    touched = true;
+    if (e.key === 'ArrowLeft') { setPercent(cur - 4); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { setPercent(cur + 4); e.preventDefault(); }
+    if (e.key === 'Home') { setPercent(2); e.preventDefault(); }
+    if (e.key === 'End') { setPercent(98); e.preventDefault(); }
+  });
+
+  setPercent(50);
+})();
+
+/* ---------- SCROLL PROGRESS BAR ---------- */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const bar = document.createElement('div');
+  bar.className = 'scroll-progress';
+  bar.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(bar);
+  let ticking = false;
+  const update = () => {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+  update();
+})();
+
+/* ---------- GALLERY LIGHTBOX ---------- */
+(function () {
+  const items = Array.from(document.querySelectorAll('[data-lightbox]'));
+  if (!items.length) return;
+
+  const sources = items.map(el => el.querySelector('img')?.src).filter(Boolean);
+  let index = 0;
+
+  const box = document.createElement('div');
+  box.className = 'lightbox';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  box.setAttribute('aria-label', 'Image preview');
+  box.innerHTML = `
+    <button class="lightbox-close" aria-label="Close preview">&times;</button>
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous image">&#8249;</button>
+    <img alt="Project preview">
+    <button class="lightbox-nav lightbox-next" aria-label="Next image">&#8250;</button>`;
+  document.body.appendChild(box);
+
+  const img = box.querySelector('img');
+  const show = (i) => { index = (i + sources.length) % sources.length; img.src = sources[index]; };
+  const open = (i) => { show(i); box.classList.add('open'); document.body.classList.add('nav-open'); };
+  const close = () => { box.classList.remove('open'); document.body.classList.remove('nav-open'); };
+
+  items.forEach((el, i) => {
+    el.addEventListener('click', () => open(i));
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(i); } });
+  });
+  box.querySelector('.lightbox-close').addEventListener('click', close);
+  box.querySelector('.lightbox-prev').addEventListener('click', () => show(index - 1));
+  box.querySelector('.lightbox-next').addEventListener('click', () => show(index + 1));
+  box.addEventListener('click', e => { if (e.target === box) close(); });
+  document.addEventListener('keydown', e => {
+    if (!box.classList.contains('open')) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') show(index - 1);
+    if (e.key === 'ArrowRight') show(index + 1);
+  });
+})();
+
+/* ---------- CONTACT FORM → WHATSAPP ---------- */
 const contactForm = document.getElementById('contact-form');
 contactForm?.addEventListener('submit', (e) => {
   e.preventDefault();
-  const name = contactForm.querySelector('[name="name"]')?.value || '';
-  const phone = contactForm.querySelector('[name="phone"]')?.value || '';
-  const service = contactForm.querySelector('[name="service"]')?.value || '';
-  const message = contactForm.querySelector('[name="message"]')?.value || '';
-  const text = `Hello SK Paint Co.!%0A%0AName: ${name}%0APhone: ${phone}%0AService: ${service}%0AMessage: ${message}`;
-  window.open(`https://wa.me/916374921410?text=${text}`, '_blank');
+  // Native validation first so required fields give visible feedback
+  if (!contactForm.checkValidity()) { contactForm.reportValidity(); return; }
+
+  const get = (n) => contactForm.querySelector(`[name="${n}"]`)?.value.trim() || '—';
+  const num = (window.SKP && window.SKP.WA_NUMBER) || '916374921410';
+  const text =
+    `*New Enquiry — SK Paint Co.*%0A%0A` +
+    `*Name:* ${get('name')}%0A` +
+    `*Phone:* ${get('phone')}%0A` +
+    `*Service:* ${get('service')}%0A` +
+    `*Message:* ${get('message')}`;
+  window.open(`https://wa.me/${num}?text=${text}`, '_blank', 'noopener');
+  showToast('Opening WhatsApp to send your enquiry…');
 });
 
-// ===== ACTIVE NAV LINK =====
-const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-document.querySelectorAll('.nav-links a, .mobile-nav a').forEach(link => {
-  const href = link.getAttribute('href');
-  if (href === currentPage || (currentPage === '' && href === 'index.html')) {
-    link.classList.add('active');
+/* ---------- LIGHTWEIGHT TOAST ---------- */
+function showToast(message) {
+  let toast = document.querySelector('.skp-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'skp-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
   }
-});
-
-// ===== COUNTER ANIMATION =====
-function animateCounters() {
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const target = +el.dataset.count;
-    const suffix = el.dataset.suffix || '';
-    let current = 0;
-    const step = Math.ceil(target / 40);
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= target) { current = target; clearInterval(timer); }
-      el.textContent = current + suffix;
-    }, 30);
-  });
-}
-// Trigger counters when hero stats become visible
-const statsEl = document.querySelector('.hero-stats');
-if (statsEl) {
-  const statsObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      animateCounters();
-      statsObserver.unobserve(statsEl);
-    }
-  });
-  statsObserver.observe(statsEl);
-}
-
-// ===== BEFORE & AFTER COMPARISON SLIDER =====
-const compSlider = document.getElementById('comparisonSlider');
-const compContainer = document.getElementById('comparisonContainer');
-const compAfter = document.getElementById('comparisonAfter');
-const compDivider = document.getElementById('comparisonDivider');
-const compHandle = document.getElementById('comparisonHandle');
-
-if (compSlider && compContainer && compAfter && compDivider && compHandle) {
-  let dragging = false;
-
-  function getPercent(clientX) {
-    const rect = compContainer.getBoundingClientRect();
-    return Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
-  }
-  function updateSlider(pct) {
-    compAfter.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
-    compDivider.style.left = pct + '%';
-    compHandle.style.left = pct + '%';
-  }
-
-  compHandle.addEventListener('mousedown', (e) => { dragging = true; e.preventDefault(); });
-  compHandle.addEventListener('touchstart', (e) => { dragging = true; e.preventDefault(); }, { passive: false });
-  document.addEventListener('mousemove', (e) => { if (dragging) updateSlider(getPercent(e.clientX)); });
-  document.addEventListener('touchmove', (e) => { if (dragging) updateSlider(getPercent(e.touches[0].clientX)); }, { passive: false });
-  document.addEventListener('mouseup', () => { dragging = false; });
-  document.addEventListener('touchend', () => { dragging = false; });
-  compSlider.addEventListener('click', (e) => { if (e.target !== compHandle) updateSlider(getPercent(e.clientX)); });
-
-  updateSlider(50);
+  toast.textContent = message;
+  requestAnimationFrame(() => toast.classList.add('show'));
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 3600);
 }
